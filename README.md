@@ -21,7 +21,7 @@ Tables:
 2. Persons Who Are Not Hispanic or Latino by Race Combination [70]
    Valid years in file: 1990, 2000, 2010
    Code: AF0
-------------------------------------------------
+
 
 ## Shapefiles
 
