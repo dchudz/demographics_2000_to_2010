@@ -1,6 +1,10 @@
 demographics_2000_to_2010
 =========================
 
+# Demo
+
+# Why I used D3 for this
+
 # Data
 
 ## Demographics
@@ -26,3 +30,16 @@ Tables:
 ## Shapefiles
 
 You'll get shapefiles for 2000 and 2010. It's really nice that NHGIS picks out the right shapefiles for you. I've learned by getting burned once that "2000 census tract shapefiles" isn't completely unambiguous, for confusing reasons.
+
+# Data processing
+
+* First I (*create_random_points.py*) create a dictionary for each year whose keys are census tracts and whose values are lists of points within that census tract. like this: "{"G0600810609500": [{"lat": 37.50626816926859, "lon": -122.28318844914996}, {"lat": 37.50466208009152, "lon": -122.28494199026409}, ... }"
+* Then I (*process_demographics_csv.py*) randomly assign points to demographics groups by:
+ 1. choosing a random tract (weighted by populations)
+ 2. taking the next point in the list of points in that tract
+ 3. assigning a random demographic group to that point according to the population proportions within the tract
+
+This results in a data structure that looks like: 
+
+{"2000": {"population": 4123740.0, "points": [{"lat": 37.974293937529644, "group": "hispanic", "lon": -122.3320905363558}, {"lat": 38.02111860511683, "group": "hispanic", "lon": -121.9181554520208}
+
