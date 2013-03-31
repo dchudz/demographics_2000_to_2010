@@ -1,9 +1,12 @@
-demographics_2000_to_2010
-=========================
-
 # Demo
 
+http://www.learnfromdata.com/media/d3/demographics/demographics_2000_to_2010.htmlo
+
 # Why I used D3 for this
+
+This probably isn't a great use for D3, since I need to display so many points. All of the other demographics dot density plots that I've seen used static images, and that appears to be for good reason!
+
+However, I wanted to learn a bit of D3/Javascript, and I wanted to do cool things with the dots, like randomly resample the points as you watch.
 
 # Data
 
@@ -43,3 +46,13 @@ This results in a data structure that looks like:
 
 {"2000": {"population": 4123740.0, "points": [{"lat": 37.974293937529644, "group": "hispanic", "lon": -122.3320905363558}, {"lat": 38.02111860511683, "group": "hispanic", "lon": -121.9181554520208}
 
+
+# Improvements
+
+Some improvements I'd like:
+
+1. UI should be more usable / more clearly indicate what's going on.
+2. Data structures should be different so that you only download the points you need based on where you are in the map:
+  * This would allow expanding to the whole country, not just the Bay area.
+  * This would allow showing more points in less dense areas.
+3. Switching between years (2000, 2010) should leave all of the points that it can in the same location. (E.g., if the numbers in each demographic group only increase, then we add more points for the appropriate groups, but don't remove any of the old points.)
