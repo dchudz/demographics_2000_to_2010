@@ -1,6 +1,6 @@
 # Demo
 
-http://www.learnfromdata.com/media/d3/demographics/demographics_2000_to_2010.htmlo
+http://www.learnfromdata.com/media/d3/demographics/demographics_2000_to_2010.html
 
 # Why I used D3 for this
 
