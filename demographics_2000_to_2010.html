@@ -1,0 +1,192 @@
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.29.5"></script>
+    <script type="text/javascript" src="http://polymaps.org/polymaps.min.js?2.5.0"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+    
+    <style type="text/css">
+@import url("http://polymaps.org/style.css");
+
+html, body {
+  height: 100%;
+  background: #E6E6E6;
+  margin: 0;
+  font: 10px sans-serif;
+}
+
+svg {
+  display: block;
+}
+
+circle {
+  stroke: black;
+  fill-opacity: 1;
+    stroke-opacity: 0;
+}
+
+#map {
+  width: 960px;
+  height: 1000px;
+}
+
+
+    </style>
+  </head>
+  <body>
+
+<h1 id="heading"></h1>
+   <form>
+      People per dot: <input type="text" class = "form .text" id="people_per_dot" value="150"/><br>
+      Dot size: <input type="text" class = "form .text" id="dot_size" value="2"/><br>
+      Refresh points continually?: <input type="checkbox" class = "form" id="cycle_points"/><br>
+      <input class = "form" type="radio" name="year" value="2000">2000<br>
+      <input class = "form" type="radio" name="year" value="2010" checked="true">2010
+
+    </form>
+    <div id="map"></div>
+ 
+<p>
+Credits:
+<ul>
+  <li>Navigating Census data is a huge pain. Many thanks, NHGIS for making it so much easier: <strong>Minnesota Population Center. National Historical Geographic Information System: Version 2.0. Minneapolis, MN: University of Minnesota 2011.</strong></li>
+  <li>Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.</li> 
+
+    <script type="text/javascript">
+
+function take_n_random_from_array(a,n) {
+  N = a.length
+  n = Math.min(n,N)
+  var arr = []
+  while(arr.length < n){
+   var randomnumber=Math.floor(Math.random()*N)
+   var found=false;
+   for(var i=0;i<arr.length;i++){
+    if(arr[i]==a[randomnumber]){found=true;break}
+  }
+   if(!found)arr[arr.length]=a[randomnumber];
+}
+  return arr;
+}
+
+
+colors = ["#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#637939"]
+groups = ["hispanic", "white", "black", "asian", "other"]
+//Thanks Colorbrewer!
+var color = d3.scale.ordinal().range(colors).domain(groups);
+
+var po = org.polymaps;
+
+// Create the map object, add it to #mapÃ¢â‚¬Â¦
+var map = po.map()
+    .container(d3.select("#map").append("svg:svg").node())
+    .zoom(8)
+    .add(po.interact());
+
+function point_is_inside_twice_map_area(point) {
+  mapLatMax = map.extent()[1].lat;
+  mapLatMin = map.extent()[0].lat;
+  mapLonMax = map.extent()[1].lon;
+  mapLonMin = map.extent()[0].lon;
+
+  LatRange = (mapLatMax - mapLatMin)*.3;
+  LonRange = (mapLonMax - mapLonMin)*.3;
+
+  latMax = mapLatMax + LatRange;
+  latMin = mapLatMin - LatRange;
+  lonMax = mapLonMax + LonRange;
+  lonMin = mapLonMin - LonRange;
+  //alert(latMax + " " + latMin + " " + lonMax + " " + lonMin + " " + point.lat + " " + point.lon);
+latOK = (latMin < point.lat) && (point.lat < latMax);
+lonOK = (lonMin < point.lon) && (point.lon < lonMax);
+  return (latOK && lonOK);
+}
+
+// Add the CloudMade image tiles as a base layerÃ¢â‚¬Â¦
+map.add(po.image()
+    .url(po.url("http://{S}tile.stamen.com/toner-lite/{Z}/{X}/{Y}.jpg")
+    .hosts(["a.", "b.", "c.", ""]))).zoom(13);
+
+// Add the compass control on top.
+map.add(po.compass()
+    .pan("none"));
+
+d3.json("flat_points_list.json", function(data) {
+  // Insert our layer beneath the compass.
+
+  var layer = d3.select("#map svg").insert("svg:g", ".compass");
+  
+  add_markers(data);
+
+  var legend = layer.selectAll(".legend")
+    .data(color.domain())
+    .enter().append("g")
+    .attr("class", "legend")
+    .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+  legend.append("rect")
+      .attr("x", 100)
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", color);
+
+  legend.append("text")
+      .attr("x", 100)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .style("text-anchor", "end")
+      .text(function(d) { return d; });
+
+  // Whenever the map moves, update the marker positions.
+  map.on("move", function() {
+    layer.selectAll("g").attr("transform", transform);
+    legend.attr("transform", transform).attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+  });
+
+  function switchDataSourceTo(new_source) {
+    d3.json(new_source, function(data) {
+      add_markers(data);
+    });
+  }
+
+  function transform(d) {
+    d = map.locationPoint({lon: d.lon, lat: d.lat});
+    return "translate(" + d.x + "," + d.y + ")";
+  }
+
+  function add_markers(data) {
+      d3.selectAll(".marker").remove();
+      year = $('input[name=year]:checked').val();
+      d3.select("#heading").text("Year is: " + year);
+      data_this_year = data[year];
+      num_points =  Math.floor(data_this_year.population/$("#people_per_dot").val());
+      points_local = data_this_year.points.filter(point_is_inside_twice_map_area);
+      points = take_n_random_from_array(points_local,Math.floor(num_points/(data_this_year.points.length/points_local.length)));
+      $("#people_per_dot").val(Math.floor(data_this_year.population / (data_this_year.points.length * (points.length/points_local.length))));
+      marker = layer.selectAll("g")
+      .data(points)
+      .enter().append("svg:g")
+      .attr("class", "marker")
+      .attr("transform", transform);
+      // Add a circle.
+      marker.append("svg:circle")
+        .attr("r", $("#dot_size").val())
+        .style("fill", function(d) { return color(d.group); });
+
+      d3.selectAll(".form").on("change", function() {add_markers(data);});
+
+      if ($("#cycle_points").is(":checked")) {
+        $(".form:text").attr("disabled", true)
+        setTimeout(add_markers, 2000, data);
+      }
+      else {
+        $(".form:text").attr("disabled", false)
+      }
+  }
+});
+
+    </script>
+  </body>
+</html>
